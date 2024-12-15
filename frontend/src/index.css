@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* .navbar {
+  display: flex;
+  align-items: center;
+} */
+:root {
+  font-family: "monospace" !important;
+  color-scheme: dark;
+  background-image: url(./assets/bg.jpg);
+  opacity: 0.9;
+  background-size: cover;
+  background-position: center;
+}
