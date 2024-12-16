@@ -1,31 +1,42 @@
-import React, { useState } from 'react';
-import Slider from 'react-slick';
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
+import React, { useState, useEffect } from "react";
+import Slider from "react-slick";
+import PropTypes from "prop-types";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import { fetchCampaigns, updateUserPoints } from "../utils/api";
 
 const Home = ({ onPointsUpdate }) => {
-  const [campaigns, setCampaigns] = useState([
-    { name: 'STONE', amount: '10000000' },
-    { name: 'PLAY', amount: '200000' },
-    { name: 'FLAT', amount: '100000' },
-    { name: 'CHILLGUY', amount: '100000' },
-    { name: 'ODIN', amount: '900000' },
-    { name: 'LEO', amount: '800000' },
-    { name: 'B20', amount: '700000' },
-    { name: 'ALEX', amount: '700000' },
-  ]);
+  const [campaigns, setCampaigns] = useState([]);
+  const [tweetLink, setTweetLink] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
 
-  const [tweetLink, setTweetLink] = useState('');
-  const [statusMessage, setStatusMessage] = useState('');
+  useEffect(() => {
+    const loadCampaigns = async () => {
+      try {
+        const data = await fetchCampaigns();
+        setCampaigns(data);
+      } catch (error) {
+        console.error("Error fetching campaigns:", error);
+        setStatusMessage("Failed to load live campaigns. Please try again.");
+      }
+    };
+
+    loadCampaigns();
+  }, []);
 
   const verifyTweet = async () => {
-    // Mock tweet verification logic
-    if (tweetLink.includes('twitter.com')) {
-      // Simulate successful verification
-      setStatusMessage('Tweet verified successfully! Points added.');
-      onPointsUpdate(10); // Add 10 points as an example
-    } else {
-      setStatusMessage('Invalid tweet link. Please provide a valid link.');
+    try {
+      if (!tweetLink.includes("twitter.com")) {
+        setStatusMessage("Invalid tweet link. Please provide a valid link.");
+        return;
+      }
+
+      await updateUserPoints("user123", 10);
+      setStatusMessage("Tweet verified successfully! Points added.");
+      onPointsUpdate(10);
+    } catch (error) {
+      console.error("Error verifying tweet:", error);
+      setStatusMessage("Failed to verify tweet. Please try again.");
     }
   };
 
@@ -46,32 +57,39 @@ const Home = ({ onPointsUpdate }) => {
 
   return (
     <>
-      {/* Live Campaign Section */}
-      <div className="p-2 relative z-0">
-        <h1 className="text-2xl font-bold mb-4">Live Campaign</h1>
-        <Slider {...settings} className="relative z-10">
-          {campaigns.map((campaign, index) => (
-            <div
-              key={index}
-              className="flex justify-center items-center h-20 bg-blue-400 shadow-md p-4"
-            >
-              <div className="text-center">
-                <h2 className="text-xl font-semibold">{campaign.name}</h2>
-                <p className="text-xl">{campaign.amount}</p>
+      <div className="p-2 relative z-0 mb-10">
+        <h1 className="text-2xl font-bold mb-4">Live Campaigns</h1>
+        {campaigns.length > 0 ? (
+          <Slider {...settings} className="relative z-10">
+            {campaigns.map((campaign, index) => (
+              <div
+                key={index}
+                className="flex justify-center items-center h-20 bg-blue-400 shadow-md p-4"
+              >
+                <div className="text-center">
+                  <h2 className="text-xl font-semibold">{campaign.tokenName}</h2>
+                  <p className="text-xl">{campaign.totalTokens}</p>
+                </div>
               </div>
-            </div>
-          ))}
-        </Slider>
+            ))}
+          </Slider>
+        ) : (
+          <p className="text-gray-400 text-center mt-4">
+            No live campaigns at the moment.
+          </p>
+        )}
       </div>
-
-      {/* Hero Section */}
-      <h2 className="flex justify-center text-2xl font-bold mb-2 mt-6">Shill and Earn</h2>
+      <h2 className="flex justify-center text-2xl font-bold mb-2 mt-6">
+        Shill and Earn
+      </h2>
       <p className="flex justify-center m-2 items-center text-center">
-        Make a positive tweet about Stone or leave a supportive comment on crypto-related tweets
+        Make a positive tweet about this token or leave a supportive comment on
+        crypto-related tweets.
       </p>
-      <p className="flex justify-center mt-2 mb-4">Don’t forget to follow and tag $Stone</p>
+      <p className="flex justify-center mt-2 mb-4">
+        Don’t forget to follow and tag the Twitter handle on your tweets.
+      </p>
       <div className="shadow-lg p-10 bg-blue-400 mb-20 mx-4 md:mx-20 rounded-lg">
-        {/* Input and Button Section */}
         <div className="flex flex-col items-center space-y-4">
           <input
             type="text"
@@ -91,6 +109,11 @@ const Home = ({ onPointsUpdate }) => {
       </div>
     </>
   );
+};
+
+// PropTypes validation
+Home.propTypes = {
+  onPointsUpdate: PropTypes.func.isRequired,
 };
 
 export default Home;

@@ -9,23 +9,27 @@ const Navbar = () => {
   // Handlers for navigation
   const handlePointClick = () => {
     navigate('/points'); 
+    setIsMenuOpen(false); 
   };
 
   const handleCampaignClick = () => {
     navigate('/campaign'); 
-  };
-
-  const handleAboutClick = () => {
-    navigate('/about'); 
+    setIsMenuOpen(false); 
   };
 
   const handleCreateClick = () => {
     navigate('/create'); 
+    setIsMenuOpen(false); 
+  };
+
+  const handleHomeClick = () => {
+    navigate('/'); 
+    setIsMenuOpen(false); 
   };
 
   return (
     <nav className="relative flex items-center justify-between px-10 py-4 bg-gray-900 text-white shadow-lg">
-      {/* Logo Section */}
+      
       <Link to="/">
         <img
           src={logo}
@@ -47,12 +51,6 @@ const Navbar = () => {
             onClick={handleCampaignClick}
           >
             Campaign
-          </li>
-          <li
-            className="hover:text-gray-300 transition-colors duration-200 cursor-pointer"
-            onClick={handleAboutClick}
-          >
-            About
           </li>
         </ul>
       </div>
@@ -96,7 +94,7 @@ const Navbar = () => {
         <ul className="space-y-2 py-4">
           <li
             className="py-2 border-b border-gray-700 hover:bg-gray-700"
-            onClick={() => navigate('/')}
+            onClick={handleHomeClick}
           >
             Home
           </li>
@@ -111,12 +109,6 @@ const Navbar = () => {
             onClick={handleCampaignClick}
           >
             Campaign
-          </li>
-          <li
-            className="py-2 border-b border-gray-700 hover:bg-gray-700"
-            onClick={handleAboutClick}
-          >
-            About
           </li>
           <li className="py-2 hover:bg-gray-700">
             <button

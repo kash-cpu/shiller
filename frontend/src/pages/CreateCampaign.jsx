@@ -1,28 +1,8 @@
-import React, { useState, useContext, createContext } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { createCampaign } from "../utils/api";
 
-// Campaign Context
-const CampaignContext = createContext();
-
-export const CampaignProvider = ({ children }) => {
-  const [campaigns, setCampaigns] = useState([]);
-
-  const addCampaign = (campaign) => {
-    setCampaigns((prevCampaigns) => [...prevCampaigns, campaign]);
-  };
-
-  return (
-    <CampaignContext.Provider value={{ campaigns, addCampaign }}>
-      {children}
-    </CampaignContext.Provider>
-  );
-};
-
-export const useCampaigns = () => useContext(CampaignContext);
-
-// Create Campaign Component
 const CreateCampaign = () => {
-  const { addCampaign } = useCampaigns();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     tokenName: "",
@@ -38,15 +18,11 @@ const CreateCampaign = () => {
 
   const handleSubmit = async () => {
     try {
-      alert("Please connect your wallet to continue.");
-      // Simulate Wallet Connection
-      const transactionResult = await connectWalletAndPay();
-      if (transactionResult.success) {
-        addCampaign(formData); // Add the new campaign to the global state
-        alert("Campaign created successfully!");
-        navigate("/campaign"); // Redirect to Campaign Page
-      }
+      await createCampaign(formData);
+      alert("Campaign created successfully!");
+      navigate("/campaign");
     } catch (error) {
+      console.error(error);
       alert("Error creating campaign: " + error.message);
     }
   };
@@ -97,41 +73,6 @@ const CreateCampaign = () => {
         </button>
       </div>
     </div>
-  );
-};
-
-// Campaign List Page
-export const CampaignPage = () => {
-  const { campaigns } = useCampaigns();
-
-  return (
-    <div className="min-h-screen p-6 text-white bg-gray-800">
-      <h1 className="text-2xl font-bold mb-4">Campaigns</h1>
-      {campaigns.length === 0 ? (
-        <p>No campaigns available.</p>
-      ) : (
-        <ul className="space-y-4">
-          {campaigns.map((campaign, index) => (
-            <li
-              key={index}
-              className="bg-gray-700 p-4 rounded-lg shadow-md border border-gray-600"
-            >
-              <p><strong>Token Name:</strong> {campaign.tokenName}</p>
-              <p><strong>Twitter Handle:</strong> {campaign.twitterHandle}</p>
-              <p><strong>Total Tokens:</strong> {campaign.totalTokens}</p>
-              <p><strong>Reward Per Shill:</strong> {campaign.rewardPerShill}</p>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-};
-
-// Mock Wallet Connection and Payment Function
-const connectWalletAndPay = async () => {
-  return new Promise((resolve) =>
-    setTimeout(() => resolve({ success: true }), 2000)
   );
 };
 
