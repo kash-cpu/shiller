@@ -2,12 +2,13 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const verifyTweetRouter = require("./routes/verifyTweet"); // Import the verifyTweet router
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// Connect to MongoDB
+// MongoDB Connection
 mongoose
   .connect("mongodb://127.0.0.1:27017/shill-app", {
     useNewUrlParser: true,
@@ -18,15 +19,15 @@ mongoose
 
 // MongoDB Schemas
 const campaignSchema = new mongoose.Schema({
-  tokenName: String,
-  twitterHandle: String,
-  totalTokens: Number,
-  rewardPerShill: Number,
+  tokenName: { type: String, required: true },
+  twitterHandle: { type: String, required: true },
+  totalTokens: { type: Number, required: true },
+  rewardPerShill: { type: Number, required: true },
 });
 
 const userSchema = new mongoose.Schema({
-  userId: String, 
-  points: { type: Number, default: 0 }, 
+  userId: { type: String, required: true, unique: true },
+  points: { type: Number, default: 0 },
 });
 
 // MongoDB Models
@@ -38,12 +39,11 @@ app.get("/", (req, res) => {
   res.send("Shill backend is running");
 });
 
-// Create a new campaign
+// Campaign Routes
 app.post("/api/campaigns", async (req, res) => {
   try {
     const { tokenName, twitterHandle, totalTokens, rewardPerShill } = req.body;
 
-    // Validate input
     if (!tokenName || !twitterHandle || !totalTokens || !rewardPerShill) {
       return res.status(400).json({ error: "All fields are required" });
     }
@@ -58,23 +58,22 @@ app.post("/api/campaigns", async (req, res) => {
     await newCampaign.save();
     res.status(201).json({ message: "Campaign created successfully" });
   } catch (err) {
-    console.error(err);
+    console.error("Error creating campaign:", err);
     res.status(500).json({ error: "Failed to create campaign" });
   }
 });
 
-// Get all campaigns
 app.get("/api/campaigns", async (req, res) => {
   try {
     const campaigns = await Campaign.find();
     res.status(200).json(campaigns);
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching campaigns:", err);
     res.status(500).json({ error: "Failed to fetch campaigns" });
   }
 });
 
-// Get or create user points
+// User Routes
 app.post("/api/user", async (req, res) => {
   try {
     const { userId } = req.body;
@@ -92,18 +91,17 @@ app.post("/api/user", async (req, res) => {
 
     res.status(200).json({ points: user.points });
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching or creating user:", err);
     res.status(500).json({ error: "Failed to fetch or create user" });
   }
 });
 
-// Update user points (e.g., after completing a shilling task)
 app.post("/api/user/points", async (req, res) => {
   try {
     const { userId, pointsToAdd } = req.body;
 
-    if (!userId || !pointsToAdd) {
-      return res.status(400).json({ error: "User ID and points to add are required" });
+    if (!userId || typeof pointsToAdd !== "number") {
+      return res.status(400).json({ error: "Invalid user ID or points to add" });
     }
 
     const user = await User.findOneAndUpdate(
@@ -114,18 +112,17 @@ app.post("/api/user/points", async (req, res) => {
 
     res.status(200).json({ points: user.points });
   } catch (err) {
-    console.error(err);
+    console.error("Error updating user points:", err);
     res.status(500).json({ error: "Failed to update points" });
   }
 });
 
-// Claim rewards
 app.post("/api/user/claim", async (req, res) => {
   try {
     const { userId, pointsToDeduct } = req.body;
 
-    if (!userId || !pointsToDeduct) {
-      return res.status(400).json({ error: "User ID and points to deduct are required" });
+    if (!userId || typeof pointsToDeduct !== "number") {
+      return res.status(400).json({ error: "Invalid user ID or points to deduct" });
     }
 
     const user = await User.findOne({ userId });
@@ -143,12 +140,16 @@ app.post("/api/user/claim", async (req, res) => {
 
     res.status(200).json({ message: "Rewards claimed successfully", points: user.points });
   } catch (err) {
-    console.error(err);
+    console.error("Error claiming rewards:", err);
     res.status(500).json({ error: "Failed to claim rewards" });
   }
 });
 
+// Twitter Verify Routes
+app.use("/api", verifyTweetRouter); // Use the verifyTweet router for /api/verify-tweet
+
 // Start the server
-app.listen(3000, () => {
-  console.log("Backend server running on port 3000");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Backend server running on port ${PORT}`);
 });

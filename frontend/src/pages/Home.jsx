@@ -3,13 +3,14 @@ import Slider from "react-slick";
 import PropTypes from "prop-types";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import { fetchCampaigns, updateUserPoints } from "../utils/api";
+import { fetchCampaigns } from "../utils/api";
 
 const Home = ({ onPointsUpdate }) => {
   const [campaigns, setCampaigns] = useState([]);
   const [tweetLink, setTweetLink] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
 
+  // Fetch campaigns on load
   useEffect(() => {
     const loadCampaigns = async () => {
       try {
@@ -24,6 +25,7 @@ const Home = ({ onPointsUpdate }) => {
     loadCampaigns();
   }, []);
 
+  // Verify the tweet using the backend
   const verifyTweet = async () => {
     try {
       if (!tweetLink.includes("twitter.com")) {
@@ -31,9 +33,33 @@ const Home = ({ onPointsUpdate }) => {
         return;
       }
 
-      await updateUserPoints("user123", 10);
-      setStatusMessage("Tweet verified successfully! Points added.");
-      onPointsUpdate(10);
+      // Fetch campaign details for verification
+      const campaign = campaigns[0]; // Example: Use the first campaign
+      if (!campaign) {
+        setStatusMessage("No active campaigns available for verification.");
+        return;
+      }
+
+      const response = await fetch("/api/verify-tweet", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tweetLink,
+          campaignHashtag: campaign.hashtag,
+          campaignTwitterHandle: campaign.twitterHandle,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setStatusMessage(result.message);
+        onPointsUpdate(10); // Update user points
+      } else {
+        setStatusMessage(result.message);
+      }
     } catch (error) {
       console.error("Error verifying tweet:", error);
       setStatusMessage("Failed to verify tweet. Please try again.");
@@ -57,6 +83,7 @@ const Home = ({ onPointsUpdate }) => {
 
   return (
     <>
+      {/* Live Campaigns Section */}
       <div className="p-2 relative z-0 mb-10">
         <h1 className="text-2xl font-bold mb-4">Live Campaigns</h1>
         {campaigns.length > 0 ? (
@@ -79,6 +106,8 @@ const Home = ({ onPointsUpdate }) => {
           </p>
         )}
       </div>
+
+      {/* Tweet Verification Section */}
       <h2 className="flex justify-center text-2xl font-bold mb-2 mt-6">
         Shill and Earn
       </h2>
