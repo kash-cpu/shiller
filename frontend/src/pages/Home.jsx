@@ -94,7 +94,9 @@ const Home = ({ onPointsUpdate }) => {
                 className="flex justify-center items-center h-20 bg-blue-400 shadow-md p-4"
               >
                 <div className="text-center">
-                  <h2 className="text-xl font-semibold">{campaign.tokenName}</h2>
+                  <h2 className="text-xl font-semibold">
+                    {campaign.tokenName}
+                  </h2>
                   <p className="text-xl">{campaign.totalTokens}</p>
                 </div>
               </div>
@@ -133,7 +135,9 @@ const Home = ({ onPointsUpdate }) => {
           >
             Verify
           </button>
-          {statusMessage && <p className="text-white font-medium">{statusMessage}</p>}
+          {statusMessage && (
+            <p className="text-white font-medium">{statusMessage}</p>
+          )}
         </div>
       </div>
     </>

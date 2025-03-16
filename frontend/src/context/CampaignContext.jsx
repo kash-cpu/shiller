@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import { API_BASE_URL } from "../config";
 
 // Create Context
 const CampaignContext = createContext();
 
-// Provider Component
 export const CampaignProvider = ({ children }) => {
   const [campaigns, setCampaigns] = useState([]);
   const [userPoints, setUserPoints] = useState(0);
@@ -68,9 +68,12 @@ export const CampaignProvider = ({ children }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, pointsToDeduct: 100 }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Failed to claim rewards");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to claim rewards");
+      }
 
+      const data = await response.json();
       alert("Rewards claimed successfully!");
       setUserPoints(data.points);
     } catch (error) {
@@ -92,6 +95,11 @@ export const CampaignProvider = ({ children }) => {
       {children}
     </CampaignContext.Provider>
   );
+};
+
+// PropTypes for CampaignProvider
+CampaignProvider.propTypes = {
+  children: PropTypes.node.isRequired,
 };
 
 // Custom Hook to use Campaign Context
